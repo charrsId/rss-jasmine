@@ -21,6 +21,7 @@ $(function () {
                     // result.pass = util.equals(actual.key, '', customEqualityTesters);
                     var dataList = actual.data;
                     var key = actual.key;
+                    var regularExpressionUrl = /^((ht|f)tps?):\/\/([\w\-]+(\.[\w\-]+)*\/)*[\w\-]+(\.[\w\-]+)*\/?(\?([\w\-\.,@?^=%&:\/~\+#]*)+)?/; // 检查 URL 格式是否正确的正规表达式
                     if (key && key.replace(/\s+/g, "")) {
                         if (dataList && dataList instanceof Array) {
                             for (var i = 0; i < dataList.length; i++) {
@@ -29,6 +30,14 @@ $(function () {
                                     result.message = '第' + (i + 1) + '行' + key + '为空';
                                     break;
                                 }
+                                if(key==='url'){
+                                    if(!expect(dataList[i].url).toMatch(regularExpressionUrl)){
+                                        result.pass = false;
+                                        result.message = '第' + (i + 1) + '行url地址不正确';
+                                        break;
+                                    }
+                                }
+                              
                             }
                         } else {
                             result.pass = false;
@@ -70,7 +79,7 @@ $(function () {
         /* TODO:
          * 编写一个测试遍历 allFeeds 对象里面的所有的源来保证有链接字段而且链接不是空的。
          */
-        it('website uri null', function () {
+        it('website uri valid', function () {
             expect({
                 data: allFeeds,
                 key: 'url'
@@ -114,9 +123,9 @@ $(function () {
          */
         it('btn can change menu show or hide when click', function () {
             $menuBtn.trigger('click');
-            expect($body.hasClass('menu-hidden')).not.toBeTruthy();
+            expect($body.hasClass('menu-hidden')).toBe(false);
             $menuBtn.trigger('click');
-            expect($body.hasClass('menu-hidden')).toBeTruthy();
+            expect($body.hasClass('menu-hidden')).toBe(true);
         })
     })
 
@@ -145,8 +154,16 @@ $(function () {
          */
         var container;
         beforeEach(function (done) {
-            container = $('.feed').html();
-            loadFeed(1, done);
+            loadFeed(1, function() { // 匿名函数，当loadFeed返回数据后执行
+                // 在这里获取内容1
+                container = $('.feed').html();
+                // 获取完毕后开始请求新的数据
+                loadFeed(0, function() {
+                    // 获取内容2
+                    // 执行done，通知下方it开始测试（因为到现在为止，两次请求的数据才真正全部返回）
+                    done();
+                });
+            });
         })
 
         it('The feed change success', function () {
