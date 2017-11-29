@@ -31,7 +31,7 @@ $(function () {
                                     break;
                                 }
                                 if(key==='url'){
-                                    if(!expect(dataList[i].url).toMatch(regularExpressionUrl)){
+                                    if(!regularExpressionUrl.test(dataList[i].url)){
                                         result.pass = false;
                                         result.message = '第' + (i + 1) + '行url地址不正确';
                                         break;
@@ -152,14 +152,16 @@ $(function () {
          * 写一个测试保证当用 loadFeed 函数加载一个新源的时候内容会真的改变。
          * 记住，loadFeed() 函数是异步的。
          */
-        var container;
+        var container1;
+        var container2;
         beforeEach(function (done) {
             loadFeed(1, function() { // 匿名函数，当loadFeed返回数据后执行
                 // 在这里获取内容1
-                container = $('.feed').html();
+                container1 = $('.feed').html();
                 // 获取完毕后开始请求新的数据
                 loadFeed(0, function() {
                     // 获取内容2
+                    container2 = $('.feed').html();
                     // 执行done，通知下方it开始测试（因为到现在为止，两次请求的数据才真正全部返回）
                     done();
                 });
@@ -167,7 +169,7 @@ $(function () {
         })
 
         it('The feed change success', function () {
-            expect(container).not.toBe($('.feed').html());
+            expect(container1).not.toBe(container2);
         })
     })
 });
